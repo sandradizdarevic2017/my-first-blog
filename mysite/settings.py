@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+import dj_database_url
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,9 +24,17 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '5^h31c=q%#31e9w$!tf-b=m#7y#a2v-ffcl@gvs@jc_174o+aq'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','sdizdarevic2017.pythonanywhere.com']
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+ALLOWED_HOSTS = ['*']
+
+DEBUG = False
+
+try:
+    from .local_settings import*
+except ImportError:
+    pass
 
 
 # Application definition
@@ -76,10 +85,15 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'database name from Heroku',
+        'USER': 'User name',
+        'PASSWORD': 'Paste the password here',
+        'HOST': 'add host here',
+        'PORT': '5432',
     }
 }
+
 
 
 # Password validation
@@ -117,6 +131,18 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
+
+STATIC_ROOT=os.path.join(PROJECT_ROOT,'staticfiles')
 STATIC_URL = '/static/'
-STATIC_ROOT=os.path.join(BASE_DIR, 'static')
+#Extra places for collectstatic to find static files.
+STATICFILES_DIRS=(
+    os.path.join(PROJECT_ROOT, 'static'),
+)
+#Simplified static file serving.
+#https://warehouse.python.org/project/whitenoise/
+STATICFILES_STORAGE='whitenoie.django.GzipManifestStaticFilesStorage'
+#Update database configuration with $DATABASE_URL.
+db_from_env=dj_database_url.config(conn_max_age=500)
+DATABASES['default'].update(db_from_env)
